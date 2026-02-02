@@ -1,0 +1,12 @@
+{
+  "device": {
+    "manufacturer": "KEYENCE",
+    "model": "NQ-MP8L"
+  },
+  "data": [
+    { "index": 1, "value": 12.3 },
+    { "index": 2, "value": 12.5 },
+    { "index": 3, "value": 12.4 },
+    { "index": 4, "value": 12.6 }
+  ]
+}
