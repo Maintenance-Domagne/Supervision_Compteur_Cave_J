@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -628,7 +627,6 @@ canvas.big-canvas{
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:#1a4050;border-radius:2px;}
 
-/* RESPONSIVE counters */
 @keyframes countUp{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
 .cc-tot-val{animation:countUp 0.4s ease both;}
 
@@ -674,9 +672,9 @@ canvas.big-canvas{
       <span class="cw-name">FT-101 DÉBIT EAU</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw0">0.000</div>
+    <div class="cw-val" id="sw0">—</div>
     <div class="cw-eu">m³ · totalisé</div>
-    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr0">0.0 m³/h</span></div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr0">— m³/h</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark0"><polyline points="" fill="none" stroke="#00e5ff" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -685,9 +683,9 @@ canvas.big-canvas{
       <span class="cw-name">FT-202 DÉBIT VAPEUR</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw1">0.000</div>
+    <div class="cw-val" id="sw1">—</div>
     <div class="cw-eu">T · totalisé</div>
-    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr1">0.0 T/h</span></div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr1">— T/h</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark1"><polyline points="" fill="none" stroke="#00ff9d" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -696,9 +694,9 @@ canvas.big-canvas{
       <span class="cw-name">ET-001 ÉNERGIE</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw2">0.000</div>
+    <div class="cw-val" id="sw2">—</div>
     <div class="cw-eu">MWh · totalisé</div>
-    <div class="cw-rate"><span>PUISSANCE</span><span id="sr2">0.0 kW</span></div>
+    <div class="cw-rate"><span>PUISSANCE</span><span id="sr2">— kW</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark2"><polyline points="" fill="none" stroke="#ffb300" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -707,9 +705,9 @@ canvas.big-canvas{
       <span class="cw-name">GT-301 GAZ NATUREL</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw3">0.000</div>
+    <div class="cw-val" id="sw3">—</div>
     <div class="cw-eu">Nm³ · totalisé</div>
-    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr3">0.0 Nm³/h</span></div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr3">— Nm³/h</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark3"><polyline points="" fill="none" stroke="#c97dff" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -718,9 +716,9 @@ canvas.big-canvas{
       <span class="cw-name">AT-401 PROD. CHIMIQUE</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw4">0.000</div>
+    <div class="cw-val" id="sw4">—</div>
     <div class="cw-eu">kg · totalisé</div>
-    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr4">0.0 kg/h</span></div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr4">— kg/h</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark4"><polyline points="" fill="none" stroke="#4da6ff" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -729,9 +727,9 @@ canvas.big-canvas{
       <span class="cw-name">PT-501 PROD. TOTALE</span>
       <span class="cw-status run"></span>
     </div>
-    <div class="cw-val" id="sw5">0.000</div>
+    <div class="cw-val" id="sw5">—</div>
     <div class="cw-eu">T · totalisé</div>
-    <div class="cw-rate"><span>CADENCE</span><span id="sr5">0.0 T/h</span></div>
+    <div class="cw-rate"><span>CADENCE</span><span id="sr5">— T/h</span></div>
     <svg class="cw-spark" viewBox="0 0 120 18" id="spark5"><polyline points="" fill="none" stroke="#ffe566" stroke-width="1.2" opacity="0.7"/></svg>
   </div>
 
@@ -908,7 +906,7 @@ canvas.big-canvas{
   <span class="sb-s">│</span>
   <div class="sb-scroll">
     <span class="sb-ticker" id="sb-ticker">
-      &nbsp;&nbsp;⬡ Acquisition en cours — Tous les compteurs actifs &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA &nbsp;&nbsp;&nbsp;&nbsp;⬡ Acquisition en cours — Tous les compteurs actifs &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA
+      &nbsp;&nbsp;⬡ En attente de données — Connecter la source de données pour démarrer l'acquisition &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA &nbsp;&nbsp;&nbsp;&nbsp;⬡ En attente de données — Connecter la source de données pour démarrer l'acquisition &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA
     </span>
   </div>
 </div>
@@ -938,29 +936,31 @@ canvas.big-canvas{
 
 <script>
 // ══════════════════════════════════════════
-//  STATE
+//  CONFIGURATION COMPTEURS
+//  (pas de simulation — adapter base_rate / rate_noise à votre source)
 // ══════════════════════════════════════════
 const COUNTERS = [
-  {id:'FT-101', name:'Débit Eau Process',    eu:'m³',   rate_eu:'m³/h',   col:'col-c', base_rate:138,  rate_noise:15,  addr:'DB1.DBD0',  col_hex:'#00e5ff'},
-  {id:'FT-202', name:'Débit Vapeur',          eu:'T',    rate_eu:'T/h',    col:'col-g', base_rate:4.2,  rate_noise:0.5, addr:'DB1.DBD4',  col_hex:'#00ff9d'},
-  {id:'ET-001', name:'Énergie Active',         eu:'MWh',  rate_eu:'kW',     col:'col-o', base_rate:2840, rate_noise:80,  addr:'DB3.DBD0',  col_hex:'#ffb300'},
-  {id:'GT-301', name:'Gaz Naturel',            eu:'Nm³',  rate_eu:'Nm³/h',  col:'col-p', base_rate:520,  rate_noise:40,  addr:'DB5.DBD0',  col_hex:'#c97dff'},
-  {id:'AT-401', name:'Produit Chimique',        eu:'kg',   rate_eu:'kg/h',   col:'col-b', base_rate:85,   rate_noise:8,   addr:'DB6.DBD0',  col_hex:'#4da6ff'},
-  {id:'PT-501', name:'Production Totale',       eu:'T',    rate_eu:'T/h',    col:'col-y', base_rate:12.5, rate_noise:1.5, addr:'DB2.DBD0',  col_hex:'#ffe566'},
+  {id:'FT-101', name:'Débit Eau Process',    eu:'m³',   rate_eu:'m³/h',   col:'col-c', addr:'DB1.DBD0',  col_hex:'#00e5ff'},
+  {id:'FT-202', name:'Débit Vapeur',          eu:'T',    rate_eu:'T/h',    col:'col-g', addr:'DB1.DBD4',  col_hex:'#00ff9d'},
+  {id:'ET-001', name:'Énergie Active',         eu:'MWh',  rate_eu:'kW',     col:'col-o', addr:'DB3.DBD0',  col_hex:'#ffb300'},
+  {id:'GT-301', name:'Gaz Naturel',            eu:'Nm³',  rate_eu:'Nm³/h',  col:'col-p', addr:'DB5.DBD0',  col_hex:'#c97dff'},
+  {id:'AT-401', name:'Produit Chimique',        eu:'kg',   rate_eu:'kg/h',   col:'col-b', addr:'DB6.DBD0',  col_hex:'#4da6ff'},
+  {id:'PT-501', name:'Production Totale',       eu:'T',    rate_eu:'T/h',    col:'col-y', addr:'DB2.DBD0',  col_hex:'#ffe566'},
 ];
 
-// Persistent state (in-memory, no localStorage)
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
 let state = {
-  totals:    [0,0,0,0,0,0],
-  rates:     [0,0,0,0,0,0],
-  razHistory: [],    // {ctr, val, ts, op}
-  archiveLog: [],    // full event log
-  chartData: [],     // {ts, rates:[6], tots:[6]}
-  razCount:  0,
-  archCount: 0,
+  totals:     [0,0,0,0,0,0],
+  rates:      [0,0,0,0,0,0],
+  razHistory: [],
+  archiveLog: [],
+  chartData:  [],
+  razCount:   0,
+  archCount:  0,
 };
 
-// Load from sessionStorage if available
 try {
   const saved = sessionStorage.getItem('scada_counters');
   if(saved) state = JSON.parse(saved);
@@ -985,33 +985,64 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // ══════════════════════════════════════════
-//  SIMULATION — rates & totals
+//  API PUBLIQUE — injecter les données externes ici
+//
+//  Appeler depuis votre couche d'acquisition :
+//
+//    // Mise à jour d'un seul compteur
+//    SCADA.updateCounter(index, { total, rate })
+//
+//    // Mise à jour de tous les compteurs en une fois
+//    SCADA.updateAll([
+//      { total: 1234.567, rate: 138.2 },  // FT-101
+//      { total: 45.12,    rate: 4.1   },  // FT-202
+//      ...
+//    ])
+//
+//  Les sparklines, cards, canvases se rafraîchissent automatiquement.
+// ══════════════════════════════════════════
+const SCADA = {
+  updateCounter(index, {total, rate}) {
+    if(index < 0 || index >= COUNTERS.length) return;
+    state.totals[index] = total;
+    state.rates[index]  = rate;
+    sparkData[index].push(rate);
+    if(sparkData[index].length > SPARK_MAX) sparkData[index].shift();
+    updateSidebarWidgets();
+    updateCounterCards();
+    updateTrendCanvas();
+    updateBigCanvas();
+    updateRazVals();
+    autoArchive();
+  },
+
+  updateAll(dataArray) {
+    dataArray.forEach((d, i) => {
+      state.totals[i] = d.total;
+      state.rates[i]  = d.rate;
+      sparkData[i].push(d.rate);
+      if(sparkData[i].length > SPARK_MAX) sparkData[i].shift();
+    });
+    updateSidebarWidgets();
+    updateCounterCards();
+    updateTrendCanvas();
+    updateBigCanvas();
+    updateRazVals();
+    autoArchive();
+  }
+};
+
+// ══════════════════════════════════════════
+//  SPARKLINES
 // ══════════════════════════════════════════
 let sparkData = Array.from({length:6}, ()=>[]);
 const SPARK_MAX = 40;
-
-function simulate(){
-  COUNTERS.forEach((c,i)=>{
-    const noise = (Math.random()-0.5)*2*c.rate_noise;
-    state.rates[i] = Math.max(0, c.base_rate + noise);
-    // increment total: rate * dt (1s) / 3600
-    const increment = state.rates[i] / 3600;
-    state.totals[i] += increment;
-    // sparkline data
-    sparkData[i].push(state.rates[i]);
-    if(sparkData[i].length > SPARK_MAX) sparkData[i].shift();
-  });
-  updateSidebarWidgets();
-  updateCounterCards();
-  updateTrendCanvas();
-  updateBigCanvas();
-}
 
 // ══════════════════════════════════════════
 //  ARCHIVAGE AUTOMATIQUE
 // ══════════════════════════════════════════
 let lastArchiveTime = Date.now();
-let archInterval = 30000; // 30s
+const archInterval = 30000; // 30s
 
 function autoArchive(){
   const now = Date.now();
@@ -1044,11 +1075,10 @@ function doArchive(type='MANUEL', ctrIndex=null, note=''){
         note: type==='AUTO'?'Archivage automatique 30s':note
       });
     });
-    // also push to chart data
     state.chartData.push({
       ts,
       rates: [...state.rates],
-      tots: [...state.totals]
+      tots:  [...state.totals]
     });
     if(state.chartData.length > 500) state.chartData.shift();
   }
@@ -1104,7 +1134,6 @@ function updateCounterCards(){
     const dy = document.getElementById(`cc-day-${i}`);
     if(el) el.textContent = fmt(state.totals[i]);
     if(rt) rt.textContent = state.rates[i].toFixed(1);
-    // Progress to daily target
     const targets = [3000, 100, 70, 12000, 2000, 300];
     const pct = Math.min(100, (state.totals[i]/targets[i])*100);
     if(pr) pr.style.width = pct.toFixed(1)+'%';
@@ -1118,7 +1147,6 @@ function updateCounterCards(){
 function buildCounterCards(){
   const grid = document.getElementById('counters-grid');
   const targets = [3000,100,70,12000,2000,300];
-  const periods = ['JOUR','POSTE','SEMAINE'];
   grid.innerHTML = COUNTERS.map((c,i)=>`
     <div class="ccard ${c.col}">
       <div class="ccard-top"></div>
@@ -1129,18 +1157,18 @@ function buildCounterCards(){
       <div class="cc-name">${c.name}</div>
       <div class="cc-display" style="margin-top:6px">
         <div class="cc-tot-label">TOTALISEUR</div>
-        <div class="cc-tot-val" id="cc-tot-${i}">0.000</div>
+        <div class="cc-tot-val" id="cc-tot-${i}">—</div>
         <div class="cc-eu">${c.eu} — totalisé depuis dernière RAZ</div>
       </div>
       <div class="cc-metrics">
         <div class="cc-metric">
           <div class="ccm-l">${c.rate_eu.includes('kW')?'PUISSANCE':'DÉBIT ACT.'}</div>
-          <div class="ccm-v" id="cc-rate-${i}">0.0</div>
+          <div class="ccm-v" id="cc-rate-${i}">—</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--dim)">${c.rate_eu}</div>
         </div>
         <div class="cc-metric">
           <div class="ccm-l">OBJ. JOUR</div>
-          <div class="ccm-v" id="cc-day-${i}">0.0%</div>
+          <div class="ccm-v" id="cc-day-${i}">—</div>
           <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--dim)">/ ${targets[i]} ${c.eu}</div>
         </div>
         <div class="cc-metric">
@@ -1173,7 +1201,7 @@ function buildRazCards(){
       <div class="raz-card-body">
         <div class="raz-current">
           <div class="rcl">Valeur actuelle</div>
-          <div class="rcv" style="color:${c.col_hex}" id="raz-val-${i}">0.000</div>
+          <div class="rcv" style="color:${c.col_hex}" id="raz-val-${i}">—</div>
           <div class="rcu">${c.eu}</div>
         </div>
         <div class="raz-hist" id="raz-hist-${i}">
@@ -1226,7 +1254,6 @@ function updateTrendCanvas(){
   ctx.fillStyle = '#020c10';
   ctx.fillRect(0,0,W,H);
 
-  // Grid
   ctx.strokeStyle = 'rgba(0,229,255,0.06)';
   ctx.lineWidth = 1;
   for(let y=0;y<H;y+=H/4){
@@ -1236,7 +1263,6 @@ function updateTrendCanvas(){
     ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
   }
 
-  // Draw first 3 counters
   [0,1,2].forEach(i=>{
     if(!sparkData[i]||sparkData[i].length<2) return;
     const data = sparkData[i];
@@ -1280,7 +1306,6 @@ function updateBigCanvas(){
   ctx.fillStyle = '#020c10';
   ctx.fillRect(0,0,W,H);
 
-  // Grid lines
   ctx.strokeStyle = 'rgba(0,229,255,0.05)';
   ctx.lineWidth = 1;
   for(let i=0;i<=5;i++){
@@ -1295,7 +1320,6 @@ function updateBigCanvas(){
     ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
   }
 
-  // Draw each visible curve from sparkData
   COUNTERS.forEach((c,i)=>{
     if(hiddenCurves.has(i)) return;
     const data = sparkData[i];
@@ -1303,7 +1327,6 @@ function updateBigCanvas(){
     const min=Math.min(...data), max=Math.max(...data);
     const range=max-min||1;
 
-    // Gradient fill
     const grad = ctx.createLinearGradient(0,0,0,H);
     grad.addColorStop(0, c.col_hex+'22');
     grad.addColorStop(1, c.col_hex+'00');
@@ -1321,18 +1344,15 @@ function updateBigCanvas(){
     ctx.stroke();
     ctx.shadowBlur=0;
 
-    // Fill
     ctx.lineTo(W, H);ctx.lineTo(0,H);ctx.closePath();
     ctx.fillStyle=grad;ctx.fill();
 
-    // Last value label
     const last = data[data.length-1];
     const lastY = H-((last-min)/range)*(H-30)-15;
     ctx.fillStyle=c.col_hex;
     ctx.font='9px Share Tech Mono';
     ctx.fillText(`${c.id}: ${last.toFixed(1)} ${c.rate_eu}`, W-200, lastY-5>10?lastY-5:10);
 
-    // Legend val
     const lv=document.getElementById('leg-val-'+i);
     if(lv) lv.textContent=last.toFixed(1)+' '+c.rate_eu;
   });
@@ -1409,8 +1429,7 @@ function closeModal(){
 
 function confirmRaz(){
   if(pendingRaz===null) return;
-  const i = pendingRaz;
-  performRaz(i);
+  performRaz(pendingRaz);
   closeModal();
 }
 
@@ -1431,7 +1450,6 @@ function performRaz(i){
   const valBefore = state.totals[i].toFixed(3);
   const ts = new Date().toISOString().replace('T',' ').slice(0,19);
 
-  // Archive before RAZ
   state.archiveLog.push({
     seq: state.archiveLog.length+1,
     ts, type:'RAZ',
@@ -1442,12 +1460,10 @@ function performRaz(i){
     note: `Remise à zéro — valeur archivée: ${valBefore} ${c.eu}`
   });
 
-  // Reset
   state.totals[i] = 0;
   state.razCount++;
   state.archCount = state.archiveLog.length;
 
-  // Update RAZ history
   state.razHistory.push({ctr:c.id, val:valBefore, ts, eu:c.eu});
 
   updateRazHistory(i);
@@ -1455,7 +1471,6 @@ function performRaz(i){
   updateArchiveStats();
   updateSidebarRazLog();
 
-  // Update RAZ date on card
   const rd = document.getElementById('cc-raz-date-'+i);
   if(rd) rd.textContent = ts.slice(11,16);
   const rv = document.getElementById('raz-val-'+i);
@@ -1584,43 +1599,28 @@ buildCounterCards();
 buildRazCards();
 buildLegend();
 updateSidebarRazLog();
-
-// Start with some data
-for(let j=0;j<SPARK_MAX;j++){
-  COUNTERS.forEach((c,i)=>{
-    const noise=(Math.random()-0.5)*2*c.rate_noise;
-    sparkData[i].push(Math.max(0,c.base_rate+noise));
-  });
-}
-
-// Main loop
-setInterval(()=>{
-  simulate();
-  autoArchive();
-  updateRazVals();
-}, 1000);
-
-// Initial archive
-setTimeout(()=>doArchive('AUTO'), 2000);
+updateTrendCanvas();
+updateBigCanvas();
 
 // Close modal on overlay click
 document.getElementById('modal-overlay').addEventListener('click', function(e){
   if(e.target===this) closeModal();
 });
 
-window.switchTab=switchTab;
-window.setPeriod=setPeriod;
-window.archiveNow=archiveNow;
-window.archiveSingle=archiveSingle;
-window.exportCSV=exportCSV;
-window.exportCurves=exportCurves;
-window.clearArchive=clearArchive;
-window.doRaz=doRaz;
-window.showRazModal=showRazModal;
-window.confirmRaz=confirmRaz;
-window.closeModal=closeModal;
-window.selectCounter=selectCounter;
-window.toggleCurve=toggleCurve;
+window.switchTab    = switchTab;
+window.setPeriod    = setPeriod;
+window.archiveNow   = archiveNow;
+window.archiveSingle= archiveSingle;
+window.exportCSV    = exportCSV;
+window.exportCurves = exportCurves;
+window.clearArchive = clearArchive;
+window.doRaz        = doRaz;
+window.showRazModal = showRazModal;
+window.confirmRaz   = confirmRaz;
+window.closeModal   = closeModal;
+window.selectCounter= selectCounter;
+window.toggleCurve  = toggleCurve;
+window.SCADA        = SCADA;
 </script>
 </body>
 </html>
