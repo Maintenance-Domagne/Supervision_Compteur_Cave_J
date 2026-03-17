@@ -1,0 +1,1626 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCADA — Compteurs Totaliseurs & Archivage</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow+Condensed:wght@300;400;500;600;700&family=Orbitron:wght@400;600;800&display=swap');
+
+:root {
+  --bg:        #010a0d;
+  --bg2:       #040f14;
+  --bg3:       #071520;
+  --bg4:       #0a1e28;
+  --bg5:       #0d2535;
+  --c:         #00e5ff;
+  --c2:        #00b8d4;
+  --g:         #00ff9d;
+  --g2:        #00c97d;
+  --o:         #ffb300;
+  --o2:        #e09800;
+  --r:         #ff3355;
+  --r2:        #cc1a38;
+  --p:         #c97dff;
+  --y:         #ffe566;
+  --b:         #4da6ff;
+  --t:         #c8eef5;
+  --dim:       #2e6070;
+  --dim2:      #1a4050;
+  --bdr:       #0d2e3c;
+  --bdr2:      #175060;
+  --glow-c:    0 0 18px #00e5ff55, 0 0 50px #00e5ff18;
+  --glow-g:    0 0 18px #00ff9d44;
+  --glow-r:    0 0 18px #ff335544;
+  --glow-o:    0 0 18px #ffb30044;
+}
+
+*{margin:0;padding:0;box-sizing:border-box;}
+
+body {
+  background:var(--bg);
+  font-family:'Barlow Condensed',sans-serif;
+  color:var(--t);
+  min-height:100vh;
+  overflow:hidden;
+  background-image:
+    radial-gradient(ellipse 700px 500px at 20% 40%, #001a2a28 0%, transparent 60%),
+    radial-gradient(ellipse 500px 300px at 80% 80%, #00111a1a 0%, transparent 50%),
+    repeating-linear-gradient(0deg,transparent,transparent 39px,#00e5ff08 39px,#00e5ff08 40px),
+    repeating-linear-gradient(90deg,transparent,transparent 39px,#00e5ff08 39px,#00e5ff08 40px);
+}
+
+body::before {
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,229,255,0.012) 3px,rgba(0,229,255,0.012) 4px);
+}
+
+/* ── HEADER ── */
+header {
+  position:relative;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 22px;height:54px;
+  background:linear-gradient(180deg,#071e28f0 0%,#030d14f0 100%);
+  border-bottom:1px solid var(--bdr2);
+  box-shadow:0 2px 30px #00e5ff14;
+}
+
+.logo {
+  font-family:'Orbitron',monospace;
+  font-size:13px;font-weight:800;
+  color:var(--c);text-shadow:var(--glow-c);
+  letter-spacing:3px;display:flex;align-items:center;gap:10px;
+}
+
+.logo-sub {
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:11px;font-weight:500;
+  color:var(--dim);letter-spacing:4px;
+  text-transform:uppercase;
+  border-left:1px solid var(--bdr2);padding-left:12px;
+}
+
+.htabs{display:flex;gap:2px;}
+.htab {
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;letter-spacing:1.5px;
+  padding:6px 18px;cursor:pointer;
+  border-bottom:2px solid transparent;
+  color:var(--dim);transition:all 0.2s;
+  text-transform:uppercase;
+}
+.htab:hover{color:var(--t);}
+.htab.active{color:var(--c);border-bottom-color:var(--c);text-shadow:0 0 8px var(--c);}
+
+.hright{display:flex;align-items:center;gap:14px;}
+.hclock{font-family:'Orbitron',monospace;font-size:14px;color:var(--c);letter-spacing:2px;text-shadow:var(--glow-c);}
+.hdate{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1px;}
+
+.badge-pill{
+  display:flex;align-items:center;gap:5px;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  padding:3px 10px;border-radius:2px;border:1px solid;
+  letter-spacing:1.5px;
+}
+.bp-g{color:var(--g);border-color:var(--g);box-shadow:var(--glow-g);}
+.bp-o{color:var(--o);border-color:var(--o);}
+.dot-blink{width:5px;height:5px;border-radius:50%;background:currentColor;box-shadow:0 0 6px currentColor;animation:blink 1.4s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── LAYOUT ── */
+.shell{position:relative;z-index:2;display:grid;grid-template-rows:54px 1fr 26px;height:100vh;}
+.body{display:grid;grid-template-columns:260px 1fr;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  background:var(--bg2);border-right:1px solid var(--bdr);
+  overflow-y:auto;display:flex;flex-direction:column;
+}
+
+.sb-sect{
+  padding:10px 16px 5px;
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;color:var(--dim);letter-spacing:3px;
+  text-transform:uppercase;margin-top:8px;
+}
+
+/* COUNTER WIDGET in sidebar */
+.ctr-widget {
+  margin:4px 10px;
+  background:var(--bg4);
+  border:1px solid var(--bdr);
+  border-radius:3px;
+  padding:10px 12px;
+  cursor:pointer;
+  transition:all 0.2s;
+  position:relative;
+  overflow:hidden;
+}
+
+.ctr-widget::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+}
+
+.ctr-widget.active,
+.ctr-widget:hover{border-color:var(--bdr2);}
+
+.ctr-widget.c1::before{background:linear-gradient(90deg,transparent,var(--c),transparent);}
+.ctr-widget.c2::before{background:linear-gradient(90deg,transparent,var(--g),transparent);}
+.ctr-widget.c3::before{background:linear-gradient(90deg,transparent,var(--o),transparent);}
+.ctr-widget.c4::before{background:linear-gradient(90deg,transparent,var(--p),transparent);}
+.ctr-widget.c5::before{background:linear-gradient(90deg,transparent,var(--b),transparent);}
+.ctr-widget.c6::before{background:linear-gradient(90deg,transparent,var(--y),transparent);}
+
+.ctr-widget.active{
+  background:var(--bg5);
+  box-shadow:inset 0 0 20px #00e5ff08;
+}
+
+.cw-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.cw-name{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;}
+.cw-status{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.cw-status.run{background:var(--g);box-shadow:0 0 6px var(--g);animation:blink 2s ease infinite;}
+.cw-status.stop{background:var(--r);box-shadow:0 0 6px var(--r);}
+
+.cw-val{
+  font-family:'Orbitron',monospace;
+  font-size:16px;font-weight:700;
+  line-height:1;margin-bottom:2px;
+}
+
+.ctr-widget.c1 .cw-val{color:var(--c);}
+.ctr-widget.c2 .cw-val{color:var(--g);}
+.ctr-widget.c3 .cw-val{color:var(--o);}
+.ctr-widget.c4 .cw-val{color:var(--p);}
+.ctr-widget.c5 .cw-val{color:var(--b);}
+.ctr-widget.c6 .cw-val{color:var(--y);}
+
+.cw-eu{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);}
+.cw-rate{
+  margin-top:6px;
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);
+}
+.cw-rate span:last-child{color:var(--t);}
+
+/* Sparkline mini */
+.cw-spark{height:18px;width:100%;margin-top:4px;}
+
+/* RESET LOG in sidebar */
+.reset-item{
+  margin:3px 10px;
+  padding:7px 10px;
+  background:var(--bg3);
+  border:1px solid var(--bdr);
+  border-left:3px solid var(--o);
+  border-radius:2px;
+}
+.ri-time{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1px;}
+.ri-name{font-size:11px;font-weight:600;color:var(--t);margin:2px 0;}
+.ri-val{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--o);}
+
+/* ── MAIN ── */
+.main{overflow:hidden;display:flex;flex-direction:column;}
+
+/* Tab pages */
+.tabpage{display:none;flex:1;overflow:hidden;}
+.tabpage.active{display:flex;flex-direction:column;overflow:hidden;}
+
+/* ── TOTALISEURS PAGE ── */
+.tot-page{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+/* Big counter cards */
+.counters-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.ccard{
+  background:var(--bg3);
+  border:1px solid var(--bdr);
+  border-radius:4px;
+  overflow:hidden;
+  position:relative;
+  transition:border-color 0.2s,box-shadow 0.2s;
+}
+
+.ccard:hover{border-color:var(--bdr2);box-shadow:0 0 20px #00e5ff0c;}
+
+.ccard-top{
+  position:absolute;top:0;left:0;right:0;height:3px;
+}
+
+.ccard.col-c .ccard-top{background:linear-gradient(90deg,transparent,var(--c),transparent);}
+.ccard.col-g .ccard-top{background:linear-gradient(90deg,transparent,var(--g),transparent);}
+.ccard.col-o .ccard-top{background:linear-gradient(90deg,transparent,var(--o),transparent);}
+.ccard.col-p .ccard-top{background:linear-gradient(90deg,transparent,var(--p),transparent);}
+.ccard.col-b .ccard-top{background:linear-gradient(90deg,transparent,var(--b),transparent);}
+.ccard.col-y .ccard-top{background:linear-gradient(90deg,transparent,var(--y),transparent);}
+
+.ccard-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px 6px;
+}
+
+.cc-id{
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;color:var(--dim);letter-spacing:2px;
+}
+
+.cc-tag{
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;letter-spacing:1px;
+  padding:2px 8px;border-radius:2px;border:1px solid;
+}
+
+.col-c .cc-tag{color:var(--c);border-color:var(--c);background:#00e5ff11;}
+.col-g .cc-tag{color:var(--g);border-color:var(--g);background:#00ff9d11;}
+.col-o .cc-tag{color:var(--o);border-color:var(--o);background:#ffb30011;}
+.col-p .cc-tag{color:var(--p);border-color:var(--p);background:#c97dff11;}
+.col-b .cc-tag{color:var(--b);border-color:var(--b);background:#4da6ff11;}
+.col-y .cc-tag{color:var(--y);border-color:var(--y);background:#ffe56611;}
+
+.cc-name{
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:14px;font-weight:600;
+  color:var(--t);letter-spacing:1px;
+  padding:0 14px 4px;
+}
+
+.cc-display{
+  padding:6px 14px 10px;
+  background:rgba(0,0,0,0.3);
+  margin:0 10px;border-radius:3px;
+  border:1px solid var(--bdr);
+  position:relative;
+  overflow:hidden;
+}
+
+/* LED digit effect */
+.cc-display::before{
+  content:'';
+  position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(0,0,0,0.15) 0px, transparent 1px,transparent 10px);
+  pointer-events:none;
+}
+
+.cc-tot-label{
+  font-family:'Share Tech Mono',monospace;
+  font-size:7px;color:var(--dim);letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:3px;
+}
+
+.cc-tot-val{
+  font-family:'Orbitron',monospace;
+  font-size:26px;font-weight:800;
+  letter-spacing:2px;
+  line-height:1;
+}
+
+.col-c .cc-tot-val{color:var(--c);text-shadow:var(--glow-c);}
+.col-g .cc-tot-val{color:var(--g);text-shadow:var(--glow-g);}
+.col-o .cc-tot-val{color:var(--o);text-shadow:var(--glow-o);}
+.col-p .cc-tot-val{color:var(--p);text-shadow:0 0 18px #c97dff44;}
+.col-b .cc-tot-val{color:var(--b);text-shadow:0 0 18px #4da6ff44;}
+.col-y .cc-tot-val{color:var(--y);text-shadow:0 0 18px #ffe56644;}
+
+.cc-eu{
+  font-family:'Share Tech Mono',monospace;
+  font-size:10px;color:var(--dim);margin-top:2px;
+}
+
+.cc-metrics{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:6px;padding:8px 10px;
+}
+
+.cc-metric{
+  background:var(--bg4);
+  border:1px solid var(--bdr);
+  border-radius:2px;
+  padding:5px 8px;
+}
+
+.ccm-l{font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--dim);letter-spacing:1px;text-transform:uppercase;}
+.ccm-v{font-family:'Orbitron',monospace;font-size:13px;font-weight:600;color:var(--t);margin-top:2px;}
+
+.cc-footer{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:6px 10px 10px;gap:6px;
+}
+
+.btn{
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;letter-spacing:1.5px;
+  padding:4px 10px;border-radius:2px;
+  cursor:pointer;border:1px solid;background:transparent;
+  transition:all 0.2s;text-transform:uppercase;
+  flex:1;text-align:center;
+}
+
+.btn-c{color:var(--c);border-color:var(--c2);}
+.btn-c:hover{background:rgba(0,229,255,0.12);box-shadow:var(--glow-c);}
+.btn-r{color:var(--r);border-color:var(--r2);}
+.btn-r:hover{background:rgba(255,51,85,0.12);box-shadow:var(--glow-r);}
+.btn-g{color:var(--g);border-color:var(--g2);}
+.btn-g:hover{background:rgba(0,255,157,0.10);box-shadow:var(--glow-g);}
+.btn-o{color:var(--o);border-color:var(--o2);}
+.btn-o:hover{background:rgba(255,179,0,0.10);}
+.btn-p{color:var(--p);border-color:var(--p);}
+.btn-p:hover{background:rgba(201,125,255,0.10);}
+
+/* TREND SECTION */
+.trend-card{
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;overflow:hidden;
+}
+
+.trend-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:9px 14px;
+  background:rgba(0,229,255,0.03);
+  border-bottom:1px solid var(--bdr);
+}
+
+.trendh-title{
+  font-family:'Orbitron',monospace;font-size:10px;font-weight:600;
+  color:var(--c);letter-spacing:2px;
+  display:flex;align-items:center;gap:8px;
+}
+
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;}
+
+.chart-area{position:relative;padding:12px 14px 6px;}
+
+canvas.trend-canvas{
+  width:100%;height:160px;display:block;
+  border:1px solid var(--bdr);border-radius:2px;background:#020c10;
+}
+
+/* ── ARCHIVAGE PAGE ── */
+.arch-page{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+.arch-controls{
+  display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end;
+}
+
+.fld-group{display:flex;flex-direction:column;gap:4px;}
+.fld-label{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;}
+.fld-input{
+  background:var(--bg4);border:1px solid var(--bdr2);border-radius:2px;
+  color:var(--t);font-family:'Share Tech Mono',monospace;font-size:11px;
+  padding:6px 10px;outline:none;
+  transition:border-color 0.2s;
+}
+.fld-input:focus{border-color:var(--c);box-shadow:0 0 8px #00e5ff22;}
+.fld-input option{background:var(--bg3);}
+
+/* Archive table */
+.arch-table{width:100%;border-collapse:collapse;}
+.arch-table thead tr{background:rgba(0,229,255,0.04);position:sticky;top:0;z-index:5;}
+.arch-table th{
+  font-family:'Share Tech Mono',monospace;
+  font-size:8px;color:var(--dim);letter-spacing:2px;
+  padding:7px 10px;text-align:left;text-transform:uppercase;
+  border-bottom:1px solid var(--bdr2);white-space:nowrap;
+}
+.arch-table td{
+  padding:6px 10px;
+  border-bottom:1px solid rgba(255,255,255,0.03);
+  font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--t);
+  white-space:nowrap;
+}
+.arch-table tr:hover td{background:rgba(0,229,255,0.025);}
+.at-ts{color:var(--dim);}
+.at-name{color:var(--c);}
+.at-val{font-weight:700;}
+.at-evt{
+  font-size:8px;padding:2px 8px;border-radius:2px;border:1px solid;
+}
+.at-evt.releve{color:var(--c);border-color:var(--c);background:#00e5ff0d;}
+.at-evt.raz{color:var(--o);border-color:var(--o);background:#ffb3000d;}
+.at-evt.alarme{color:var(--r);border-color:var(--r);background:#ff33550d;animation:blink 0.8s linear infinite;}
+.at-evt.export{color:var(--g);border-color:var(--g);background:#00ff9d0d;}
+
+/* ── COURBES PAGE ── */
+.courbes-page{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+.curve-toolbar{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+}
+
+.period-btn{
+  font-family:'Share Tech Mono',monospace;font-size:9px;letter-spacing:1px;
+  padding:4px 12px;border:1px solid var(--bdr2);border-radius:2px;
+  cursor:pointer;color:var(--dim);background:transparent;transition:all 0.2s;
+}
+.period-btn.active{color:var(--c);border-color:var(--c);background:rgba(0,229,255,0.08);}
+.period-btn:hover{color:var(--t);}
+
+.cb-sep{width:1px;height:24px;background:var(--bdr2);}
+
+.legend-row{
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+  padding:8px 14px;
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;
+}
+
+.leg-item{
+  display:flex;align-items:center;gap:6px;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  cursor:pointer;
+  transition:opacity 0.2s;
+  padding:2px 6px;border-radius:2px;
+}
+
+.leg-item:hover{background:rgba(255,255,255,0.04);}
+.leg-item.off{opacity:0.3;}
+
+.leg-line{width:20px;height:2px;border-radius:1px;}
+.leg-name{color:var(--t);}
+.leg-val{color:var(--dim);}
+
+.chart-big-wrap{
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;
+  padding:14px;
+}
+
+canvas.big-canvas{
+  width:100%;height:280px;display:block;
+  background:#020c10;border-radius:2px;
+  border:1px solid var(--bdr);
+}
+
+.chart-y-labels{
+  position:absolute;left:0;top:0;bottom:30px;
+  display:flex;flex-direction:column;justify-content:space-between;
+  pointer-events:none;
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);
+  padding:10px 0;
+}
+
+/* ── RAZ PAGE ── */
+.raz-page{overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:12px;}
+
+.raz-warn{
+  padding:12px 16px;
+  background:rgba(255,179,0,0.07);
+  border:1px solid var(--o);
+  border-radius:3px;
+  display:flex;align-items:center;gap:12px;
+  font-size:13px;color:var(--o);font-weight:600;letter-spacing:1px;
+}
+
+.raz-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+.raz-card{
+  background:var(--bg3);border:1px solid var(--bdr);border-radius:4px;
+  overflow:hidden;
+}
+
+.raz-card-head{
+  padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--bdr);
+  background:rgba(0,0,0,0.2);
+}
+
+.rc-name{font-size:13px;font-weight:700;color:var(--t);letter-spacing:1px;}
+.rc-tag{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);}
+
+.raz-card-body{padding:12px 14px;}
+
+.raz-current{margin-bottom:10px;}
+.rcl{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px;}
+.rcv{font-family:'Orbitron',monospace;font-size:22px;font-weight:700;}
+.rcu{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);}
+
+.raz-hist{margin-bottom:10px;}
+.rh-row{
+  display:flex;justify-content:space-between;
+  font-family:'Share Tech Mono',monospace;font-size:9px;
+  padding:3px 0;border-bottom:1px solid rgba(255,255,255,0.04);
+}
+.rh-row:last-child{border-bottom:none;}
+.rh-date{color:var(--dim);}
+.rh-val{color:var(--o);}
+
+.raz-confirm-area{margin-top:8px;}
+.raz-confirm-label{
+  font-family:'Share Tech Mono',monospace;font-size:8px;
+  color:var(--dim);letter-spacing:1px;margin-bottom:4px;
+}
+.raz-pin{
+  width:100%;background:var(--bg4);border:1px solid var(--bdr2);
+  color:var(--t);font-family:'Share Tech Mono',monospace;font-size:13px;
+  padding:6px 10px;border-radius:2px;outline:none;letter-spacing:4px;
+  transition:border-color 0.2s;
+}
+.raz-pin:focus{border-color:var(--o);}
+.raz-btn{
+  width:100%;margin-top:6px;padding:8px;
+  font-family:'Orbitron',monospace;font-size:10px;letter-spacing:2px;
+  cursor:pointer;border-radius:2px;border:1px solid var(--r);
+  background:rgba(255,51,85,0.08);color:var(--r);
+  transition:all 0.2s;
+}
+.raz-btn:hover{background:rgba(255,51,85,0.2);box-shadow:var(--glow-r);}
+.raz-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+/* MODAL */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,5,10,0.85);
+  z-index:100;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);
+  opacity:0;pointer-events:none;transition:opacity 0.2s;
+}
+.modal-overlay.show{opacity:1;pointer-events:all;}
+
+.modal{
+  background:var(--bg3);
+  border:1px solid var(--bdr2);
+  border-radius:4px;padding:24px 28px;
+  min-width:340px;max-width:420px;
+  box-shadow:0 0 60px #00e5ff18,0 20px 60px #000a;
+  position:relative;
+}
+
+.modal::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--c),transparent);
+}
+
+.modal-title{
+  font-family:'Orbitron',monospace;font-size:13px;font-weight:700;
+  color:var(--c);letter-spacing:2px;margin-bottom:16px;
+  text-shadow:var(--glow-c);
+}
+
+.modal-body{font-size:13px;color:var(--t);line-height:1.6;margin-bottom:18px;}
+.modal-val{
+  font-family:'Orbitron',monospace;font-size:28px;font-weight:800;
+  color:var(--o);text-shadow:var(--glow-o);
+  text-align:center;padding:12px 0;
+}
+.modal-footer{display:flex;gap:8px;}
+.modal-footer .btn{flex:1;padding:8px;}
+
+/* STATUS BAR */
+.statusbar{
+  background:#020a0d;border-top:1px solid var(--bdr2);
+  display:flex;align-items:center;gap:14px;
+  padding:0 16px;
+  font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);
+  letter-spacing:1.5px;overflow:hidden;
+}
+.sbi{display:flex;align-items:center;gap:5px;}
+.sbd{width:5px;height:5px;border-radius:50%;}
+.sbd-g{background:var(--g);box-shadow:0 0 4px var(--g);}
+.sbd-o{background:var(--o);}
+.sbd-r{background:var(--r);animation:blink 0.5s linear infinite;}
+.sb-s{color:var(--bdr2);}
+.sb-scroll{flex:1;overflow:hidden;white-space:nowrap;}
+.sb-ticker{display:inline-block;animation:ticker 50s linear infinite;}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* NOTIFICATION TOAST */
+.toast-wrap{position:fixed;bottom:36px;right:20px;z-index:200;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{
+  background:var(--bg4);
+  border:1px solid;border-radius:3px;
+  padding:10px 16px;
+  font-family:'Share Tech Mono',monospace;font-size:10px;
+  letter-spacing:1px;
+  display:flex;align-items:center;gap:10px;
+  transform:translateX(120%);
+  transition:transform 0.3s ease;
+  pointer-events:all;
+  box-shadow:0 4px 20px #0008;
+}
+.toast.show{transform:translateX(0);}
+.toast.t-ok{border-color:var(--g);color:var(--g);}
+.toast.t-warn{border-color:var(--o);color:var(--o);}
+.toast.t-err{border-color:var(--r);color:var(--r);}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:#1a4050;border-radius:2px;}
+
+/* RESPONSIVE counters */
+@keyframes countUp{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+.cc-tot-val{animation:countUp 0.4s ease both;}
+
+/* PROGRESS rings */
+.progress-mini{margin-top:6px;}
+.pm-track{height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;}
+.pm-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- HEADER -->
+<header>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="logo">⬡ SCADA<span style="color:#2e6070;font-weight:400">PRO</span></div>
+    <div class="logo-sub">Compteurs &amp; Totaliseurs</div>
+  </div>
+  <div class="htabs">
+    <div class="htab active" onclick="switchTab('totaliseurs',this)">Totaliseurs</div>
+    <div class="htab" onclick="switchTab('courbes',this)">Courbes</div>
+    <div class="htab" onclick="switchTab('archivage',this)">Archivage</div>
+    <div class="htab" onclick="switchTab('raz',this)">Remise à zéro</div>
+  </div>
+  <div class="hright">
+    <div style="text-align:right">
+      <div class="hclock" id="clock">--:--:--</div>
+      <div class="hdate" id="hdate">-- / -- / ----</div>
+    </div>
+    <div class="badge-pill bp-g"><div class="dot-blink"></div>ACQUISITION</div>
+    <div class="badge-pill bp-o" id="arch-badge"><div class="dot-blink" style="animation-duration:.8s"></div><span id="arch-count">0</span> ARCHIVÉS</div>
+  </div>
+</header>
+
+<div class="body">
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sb-sect">Compteurs temps réel</div>
+
+  <div class="ctr-widget c1 active" onclick="selectCounter(0,this)">
+    <div class="cw-top">
+      <span class="cw-name">FT-101 DÉBIT EAU</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw0">0.000</div>
+    <div class="cw-eu">m³ · totalisé</div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr0">0.0 m³/h</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark0"><polyline points="" fill="none" stroke="#00e5ff" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="ctr-widget c2" onclick="selectCounter(1,this)">
+    <div class="cw-top">
+      <span class="cw-name">FT-202 DÉBIT VAPEUR</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw1">0.000</div>
+    <div class="cw-eu">T · totalisé</div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr1">0.0 T/h</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark1"><polyline points="" fill="none" stroke="#00ff9d" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="ctr-widget c3" onclick="selectCounter(2,this)">
+    <div class="cw-top">
+      <span class="cw-name">ET-001 ÉNERGIE</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw2">0.000</div>
+    <div class="cw-eu">MWh · totalisé</div>
+    <div class="cw-rate"><span>PUISSANCE</span><span id="sr2">0.0 kW</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark2"><polyline points="" fill="none" stroke="#ffb300" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="ctr-widget c4" onclick="selectCounter(3,this)">
+    <div class="cw-top">
+      <span class="cw-name">GT-301 GAZ NATUREL</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw3">0.000</div>
+    <div class="cw-eu">Nm³ · totalisé</div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr3">0.0 Nm³/h</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark3"><polyline points="" fill="none" stroke="#c97dff" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="ctr-widget c5" onclick="selectCounter(4,this)">
+    <div class="cw-top">
+      <span class="cw-name">AT-401 PROD. CHIMIQUE</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw4">0.000</div>
+    <div class="cw-eu">kg · totalisé</div>
+    <div class="cw-rate"><span>DÉBIT ACTUEL</span><span id="sr4">0.0 kg/h</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark4"><polyline points="" fill="none" stroke="#4da6ff" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="ctr-widget c6" onclick="selectCounter(5,this)">
+    <div class="cw-top">
+      <span class="cw-name">PT-501 PROD. TOTALE</span>
+      <span class="cw-status run"></span>
+    </div>
+    <div class="cw-val" id="sw5">0.000</div>
+    <div class="cw-eu">T · totalisé</div>
+    <div class="cw-rate"><span>CADENCE</span><span id="sr5">0.0 T/h</span></div>
+    <svg class="cw-spark" viewBox="0 0 120 18" id="spark5"><polyline points="" fill="none" stroke="#ffe566" stroke-width="1.2" opacity="0.7"/></svg>
+  </div>
+
+  <div class="sb-sect">Dernières RAZ</div>
+  <div id="raz-log-sidebar"></div>
+
+</nav>
+
+<!-- MAIN CONTENT -->
+<main class="main">
+
+  <!-- ═══ TAB: TOTALISEURS ═══ -->
+  <div id="tab-totaliseurs" class="tabpage active">
+    <div class="tot-page">
+
+      <div class="counters-grid" id="counters-grid">
+        <!-- Generated by JS -->
+      </div>
+
+      <!-- MINI TREND -->
+      <div class="trend-card">
+        <div class="trend-header">
+          <div class="trendh-title">
+            ◈ Tendance instantanée — 60 dernières secondes
+          </div>
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="display:flex;align-items:center;gap:6px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim)">
+              <span class="legend-dot" style="background:var(--c)"></span>Débit eau
+              <span class="legend-dot" style="background:var(--g)"></span>Vapeur
+              <span class="legend-dot" style="background:var(--o)"></span>Énergie
+            </div>
+          </div>
+        </div>
+        <div class="chart-area">
+          <canvas class="trend-canvas" id="trend-canvas"></canvas>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ TAB: COURBES ═══ -->
+  <div id="tab-courbes" class="tabpage">
+    <div class="courbes-page">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+        <div class="curve-toolbar">
+          <div class="period-btn active" onclick="setPeriod('live',this)">LIVE</div>
+          <div class="period-btn" onclick="setPeriod('1h',this)">1H</div>
+          <div class="period-btn" onclick="setPeriod('8h',this)">8H</div>
+          <div class="period-btn" onclick="setPeriod('24h',this)">24H</div>
+          <div class="period-btn" onclick="setPeriod('7d',this)">7 JOURS</div>
+          <div class="cb-sep"></div>
+          <button class="btn btn-g" style="padding:4px 14px" onclick="exportCurves()">↓ EXPORTER CSV</button>
+          <button class="btn btn-c" style="padding:4px 14px" onclick="archiveNow()">◈ ARCHIVER</button>
+        </div>
+      </div>
+
+      <div class="legend-row" id="legend-row">
+        <!-- JS Generated -->
+      </div>
+
+      <div class="chart-big-wrap">
+        <canvas class="big-canvas" id="big-canvas"></canvas>
+      </div>
+
+      <!-- DATA TABLE under chart -->
+      <div class="trend-card">
+        <div class="trend-header">
+          <div class="trendh-title">◈ Tableau de valeurs archivées</div>
+          <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)" id="archive-count-label">0 enregistrements</span>
+        </div>
+        <div style="overflow-x:auto;max-height:200px;overflow-y:auto">
+          <table class="arch-table" id="values-table">
+            <thead><tr>
+              <th>HORODATAGE</th>
+              <th>FT-101 (m³/h)</th>
+              <th>FT-202 (T/h)</th>
+              <th>ET-001 (kW)</th>
+              <th>GT-301 (Nm³/h)</th>
+              <th>TOT. EAU (m³)</th>
+              <th>TOT. ÉNE. (MWh)</th>
+            </tr></thead>
+            <tbody id="values-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ TAB: ARCHIVAGE ═══ -->
+  <div id="tab-archivage" class="tabpage">
+    <div class="arch-page">
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">
+        <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:12px;border-top:2px solid var(--c)">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:5px">ENREGISTREMENTS</div>
+          <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--c)" id="arch-total">0</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:2px">session</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:12px;border-top:2px solid var(--g)">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:5px">TAILLE DONNÉES</div>
+          <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--g)" id="arch-size">0</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:2px">kB estimés</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:12px;border-top:2px solid var(--o)">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:5px">REMISES À ZÉRO</div>
+          <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--o)" id="arch-raz">0</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:2px">session</div>
+        </div>
+        <div style="background:var(--bg3);border:1px solid var(--bdr);border-radius:3px;padding:12px;border-top:2px solid var(--p)">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:2px;margin-bottom:5px">INTERVALLE AUTO</div>
+          <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:700;color:var(--p)">30</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);margin-top:2px">secondes</div>
+        </div>
+      </div>
+
+      <div class="trend-card">
+        <div class="trend-header">
+          <div class="trendh-title">◈ Historique des événements archivés</div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-g" onclick="exportCSV()">↓ EXPORT CSV</button>
+            <button class="btn btn-c" onclick="clearArchive()">✕ VIDER</button>
+          </div>
+        </div>
+        <div style="overflow-x:auto;max-height:calc(100vh - 360px);overflow-y:auto">
+          <table class="arch-table" id="arch-table">
+            <thead><tr>
+              <th>#</th>
+              <th>HORODATAGE</th>
+              <th>TYPE</th>
+              <th>COMPTEUR</th>
+              <th>VALEUR TOT.</th>
+              <th>DÉBIT</th>
+              <th>OPÉRATEUR</th>
+              <th>NOTE</th>
+            </tr></thead>
+            <tbody id="arch-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══ TAB: RAZ ═══ -->
+  <div id="tab-raz" class="tabpage">
+    <div class="raz-page">
+
+      <div class="raz-warn">
+        ⚠ &nbsp; Toute remise à zéro est irréversible et archivée. Saisir le code PIN d'autorisation avant confirmation.
+      </div>
+
+      <div class="raz-grid" id="raz-grid">
+        <!-- JS Generated -->
+      </div>
+
+    </div>
+  </div>
+
+</main>
+</div><!-- /body -->
+
+<!-- STATUS BAR -->
+<div class="statusbar">
+  <div class="sbi"><div class="sbd sbd-g"></div>ACQUISITION: OK</div>
+  <span class="sb-s">│</span>
+  <div class="sbi"><div class="sbd sbd-g"></div>ARCHIVAGE: AUTO 30s</div>
+  <span class="sb-s">│</span>
+  <div class="sbi"><div class="sbd sbd-o"></div>RAZ: <span id="sb-raz-count">0</span> EFFECTUÉES</div>
+  <span class="sb-s">│</span>
+  <span id="sb-time">--:--:--</span>
+  <span class="sb-s">│</span>
+  <div class="sb-scroll">
+    <span class="sb-ticker" id="sb-ticker">
+      &nbsp;&nbsp;⬡ Acquisition en cours — Tous les compteurs actifs &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA &nbsp;&nbsp;&nbsp;&nbsp;⬡ Acquisition en cours — Tous les compteurs actifs &nbsp;│&nbsp; Archivage automatique toutes les 30 secondes &nbsp;│&nbsp; PIN RAZ: 1234 (démo) &nbsp;│&nbsp; Export CSV disponible &nbsp;│&nbsp; 6 totaliseurs couplés S7-1500 via OPC UA
+    </span>
+  </div>
+</div>
+</div><!-- /shell -->
+
+<!-- MODAL RAZ CONFIRMATION -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title">⚠ CONFIRMER REMISE À ZÉRO</div>
+    <div class="modal-body">
+      Vous allez remettre à zéro le compteur&nbsp;:<br>
+      <strong id="modal-ctr-name" style="color:var(--c)">—</strong>
+    </div>
+    <div class="modal-val" id="modal-ctr-val">0.000</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim);text-align:center;margin-bottom:16px">
+      Cette valeur sera archivée avant remise à zéro.
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-c" onclick="closeModal()">ANNULER</button>
+      <button class="btn btn-r" onclick="confirmRaz()">CONFIRMER RAZ</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-wrap" id="toast-wrap"></div>
+
+<script>
+// ══════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════
+const COUNTERS = [
+  {id:'FT-101', name:'Débit Eau Process',    eu:'m³',   rate_eu:'m³/h',   col:'col-c', base_rate:138,  rate_noise:15,  addr:'DB1.DBD0',  col_hex:'#00e5ff'},
+  {id:'FT-202', name:'Débit Vapeur',          eu:'T',    rate_eu:'T/h',    col:'col-g', base_rate:4.2,  rate_noise:0.5, addr:'DB1.DBD4',  col_hex:'#00ff9d'},
+  {id:'ET-001', name:'Énergie Active',         eu:'MWh',  rate_eu:'kW',     col:'col-o', base_rate:2840, rate_noise:80,  addr:'DB3.DBD0',  col_hex:'#ffb300'},
+  {id:'GT-301', name:'Gaz Naturel',            eu:'Nm³',  rate_eu:'Nm³/h',  col:'col-p', base_rate:520,  rate_noise:40,  addr:'DB5.DBD0',  col_hex:'#c97dff'},
+  {id:'AT-401', name:'Produit Chimique',        eu:'kg',   rate_eu:'kg/h',   col:'col-b', base_rate:85,   rate_noise:8,   addr:'DB6.DBD0',  col_hex:'#4da6ff'},
+  {id:'PT-501', name:'Production Totale',       eu:'T',    rate_eu:'T/h',    col:'col-y', base_rate:12.5, rate_noise:1.5, addr:'DB2.DBD0',  col_hex:'#ffe566'},
+];
+
+// Persistent state (in-memory, no localStorage)
+let state = {
+  totals:    [0,0,0,0,0,0],
+  rates:     [0,0,0,0,0,0],
+  razHistory: [],    // {ctr, val, ts, op}
+  archiveLog: [],    // full event log
+  chartData: [],     // {ts, rates:[6], tots:[6]}
+  razCount:  0,
+  archCount: 0,
+};
+
+// Load from sessionStorage if available
+try {
+  const saved = sessionStorage.getItem('scada_counters');
+  if(saved) state = JSON.parse(saved);
+} catch(e){}
+
+function saveState(){
+  try{ sessionStorage.setItem('scada_counters', JSON.stringify(state)); }catch(e){}
+}
+
+// ══════════════════════════════════════════
+//  CLOCK
+// ══════════════════════════════════════════
+function updateClock(){
+  const n = new Date();
+  const t = n.toTimeString().slice(0,8);
+  const d = `${String(n.getDate()).padStart(2,'0')} / ${String(n.getMonth()+1).padStart(2,'0')} / ${n.getFullYear()}`;
+  document.getElementById('clock').textContent = t;
+  document.getElementById('hdate').textContent = d;
+  document.getElementById('sb-time').textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ══════════════════════════════════════════
+//  SIMULATION — rates & totals
+// ══════════════════════════════════════════
+let sparkData = Array.from({length:6}, ()=>[]);
+const SPARK_MAX = 40;
+
+function simulate(){
+  COUNTERS.forEach((c,i)=>{
+    const noise = (Math.random()-0.5)*2*c.rate_noise;
+    state.rates[i] = Math.max(0, c.base_rate + noise);
+    // increment total: rate * dt (1s) / 3600
+    const increment = state.rates[i] / 3600;
+    state.totals[i] += increment;
+    // sparkline data
+    sparkData[i].push(state.rates[i]);
+    if(sparkData[i].length > SPARK_MAX) sparkData[i].shift();
+  });
+  updateSidebarWidgets();
+  updateCounterCards();
+  updateTrendCanvas();
+  updateBigCanvas();
+}
+
+// ══════════════════════════════════════════
+//  ARCHIVAGE AUTOMATIQUE
+// ══════════════════════════════════════════
+let lastArchiveTime = Date.now();
+let archInterval = 30000; // 30s
+
+function autoArchive(){
+  const now = Date.now();
+  if(now - lastArchiveTime >= archInterval){
+    doArchive('AUTO');
+    lastArchiveTime = now;
+  }
+}
+
+function doArchive(type='MANUEL', ctrIndex=null, note=''){
+  const ts = new Date().toISOString().replace('T',' ').slice(0,19);
+  if(ctrIndex !== null){
+    state.archiveLog.push({
+      seq: state.archiveLog.length+1,
+      ts, type:'RELEVÉ',
+      ctr: COUNTERS[ctrIndex].id,
+      val: state.totals[ctrIndex].toFixed(3),
+      rate: state.rates[ctrIndex].toFixed(1),
+      op: 'OPR-01', note
+    });
+  } else {
+    COUNTERS.forEach((c,i)=>{
+      state.archiveLog.push({
+        seq: state.archiveLog.length+1,
+        ts, type,
+        ctr: c.id,
+        val: state.totals[i].toFixed(3),
+        rate: state.rates[i].toFixed(1),
+        op: type==='AUTO'?'SYSTÈME':'OPR-01',
+        note: type==='AUTO'?'Archivage automatique 30s':note
+      });
+    });
+    // also push to chart data
+    state.chartData.push({
+      ts,
+      rates: [...state.rates],
+      tots: [...state.totals]
+    });
+    if(state.chartData.length > 500) state.chartData.shift();
+  }
+  state.archCount = state.archiveLog.length;
+  document.getElementById('arch-count').textContent = state.archCount;
+  updateArchiveTable();
+  updateValuesTable();
+  updateArchiveStats();
+  saveState();
+}
+
+function archiveNow(){
+  doArchive('MANUEL');
+  showToast('Archivage manuel effectué', 'ok');
+}
+
+// ══════════════════════════════════════════
+//  UPDATE UI
+// ══════════════════════════════════════════
+function fmt(v, dec=3){ return v.toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g,'\u202f'); }
+
+function updateSidebarWidgets(){
+  COUNTERS.forEach((c,i)=>{
+    const sw = document.getElementById('sw'+i);
+    const sr = document.getElementById('sr'+i);
+    if(sw) sw.textContent = fmt(state.totals[i]);
+    if(sr) sr.textContent = state.rates[i].toFixed(1)+' '+c.rate_eu;
+    updateSparkline(i);
+  });
+}
+
+function updateSparkline(i){
+  const svg = document.getElementById('spark'+i);
+  if(!svg || !sparkData[i].length) return;
+  const poly = svg.querySelector('polyline');
+  const data = sparkData[i];
+  const min = Math.min(...data), max = Math.max(...data);
+  const range = max-min || 1;
+  const W=120, H=18;
+  const pts = data.map((v,j)=>{
+    const x = (j/(data.length-1||1))*W;
+    const y = H - ((v-min)/range)*H*0.85 - 1;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  poly.setAttribute('points', pts);
+}
+
+function updateCounterCards(){
+  COUNTERS.forEach((c,i)=>{
+    const el = document.getElementById(`cc-tot-${i}`);
+    const rt = document.getElementById(`cc-rate-${i}`);
+    const pr = document.getElementById(`cc-prog-${i}`);
+    const dy = document.getElementById(`cc-day-${i}`);
+    if(el) el.textContent = fmt(state.totals[i]);
+    if(rt) rt.textContent = state.rates[i].toFixed(1);
+    // Progress to daily target
+    const targets = [3000, 100, 70, 12000, 2000, 300];
+    const pct = Math.min(100, (state.totals[i]/targets[i])*100);
+    if(pr) pr.style.width = pct.toFixed(1)+'%';
+    if(dy) dy.textContent = pct.toFixed(1)+'%';
+  });
+}
+
+// ══════════════════════════════════════════
+//  COUNTER CARDS GENERATION
+// ══════════════════════════════════════════
+function buildCounterCards(){
+  const grid = document.getElementById('counters-grid');
+  const targets = [3000,100,70,12000,2000,300];
+  const periods = ['JOUR','POSTE','SEMAINE'];
+  grid.innerHTML = COUNTERS.map((c,i)=>`
+    <div class="ccard ${c.col}">
+      <div class="ccard-top"></div>
+      <div class="ccard-header">
+        <span class="cc-id">${c.addr}</span>
+        <span class="cc-tag">${c.id}</span>
+      </div>
+      <div class="cc-name">${c.name}</div>
+      <div class="cc-display" style="margin-top:6px">
+        <div class="cc-tot-label">TOTALISEUR</div>
+        <div class="cc-tot-val" id="cc-tot-${i}">0.000</div>
+        <div class="cc-eu">${c.eu} — totalisé depuis dernière RAZ</div>
+      </div>
+      <div class="cc-metrics">
+        <div class="cc-metric">
+          <div class="ccm-l">${c.rate_eu.includes('kW')?'PUISSANCE':'DÉBIT ACT.'}</div>
+          <div class="ccm-v" id="cc-rate-${i}">0.0</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--dim)">${c.rate_eu}</div>
+        </div>
+        <div class="cc-metric">
+          <div class="ccm-l">OBJ. JOUR</div>
+          <div class="ccm-v" id="cc-day-${i}">0.0%</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:7px;color:var(--dim)">/ ${targets[i]} ${c.eu}</div>
+        </div>
+        <div class="cc-metric">
+          <div class="ccm-l">DERNIÈRE RAZ</div>
+          <div class="ccm-v" id="cc-raz-date-${i}" style="font-size:10px">—</div>
+        </div>
+      </div>
+      <div class="progress-mini" style="padding:0 10px 6px">
+        <div class="pm-track"><div class="pm-fill" id="cc-prog-${i}" style="width:0%;background:${c.col_hex}55;box-shadow:0 0 8px ${c.col_hex}33;border-right:2px solid ${c.col_hex}"></div></div>
+      </div>
+      <div class="cc-footer">
+        <button class="btn btn-c" onclick="archiveSingle(${i})">◈ RELEVER</button>
+        <button class="btn btn-o" onclick="showRazModal(${i})">↺ RAZ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  RAZ PAGE GENERATION
+// ══════════════════════════════════════════
+function buildRazCards(){
+  const grid = document.getElementById('raz-grid');
+  grid.innerHTML = COUNTERS.map((c,i)=>`
+    <div class="raz-card">
+      <div class="raz-card-head">
+        <span class="rc-name">${c.name}</span>
+        <span class="rc-tag">${c.id} · ${c.addr}</span>
+      </div>
+      <div class="raz-card-body">
+        <div class="raz-current">
+          <div class="rcl">Valeur actuelle</div>
+          <div class="rcv" style="color:${c.col_hex}" id="raz-val-${i}">0.000</div>
+          <div class="rcu">${c.eu}</div>
+        </div>
+        <div class="raz-hist" id="raz-hist-${i}">
+          <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--dim);letter-spacing:1px;margin-bottom:4px">HISTORIQUE RAZ</div>
+          <div style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--dim)">Aucune RAZ effectuée</div>
+        </div>
+        <div class="raz-confirm-area">
+          <div class="raz-confirm-label">Code PIN d'autorisation</div>
+          <input type="password" class="raz-pin" id="raz-pin-${i}" maxlength="4" placeholder="••••">
+          <button class="raz-btn" id="raz-btn-${i}" onclick="doRaz(${i})">↺ REMETTRE À ZÉRO</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  LEGEND ROW
+// ══════════════════════════════════════════
+let hiddenCurves = new Set();
+function buildLegend(){
+  const row = document.getElementById('legend-row');
+  row.innerHTML = COUNTERS.map((c,i)=>`
+    <div class="leg-item" id="leg-${i}" onclick="toggleCurve(${i})">
+      <div class="leg-line" style="background:${c.col_hex};box-shadow:0 0 6px ${c.col_hex}88"></div>
+      <span class="leg-name">${c.id}</span>
+      <span class="leg-val" id="leg-val-${i}">—</span>
+    </div>
+  `).join('');
+}
+
+function toggleCurve(i){
+  if(hiddenCurves.has(i)) hiddenCurves.delete(i);
+  else hiddenCurves.add(i);
+  const el = document.getElementById('leg-'+i);
+  if(el) el.classList.toggle('off', hiddenCurves.has(i));
+}
+
+// ══════════════════════════════════════════
+//  TREND CANVAS (mini)
+// ══════════════════════════════════════════
+function updateTrendCanvas(){
+  const canvas = document.getElementById('trend-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 800;
+  const H = canvas.offsetHeight || 160;
+  canvas.width = W; canvas.height = H;
+
+  ctx.fillStyle = '#020c10';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.strokeStyle = 'rgba(0,229,255,0.06)';
+  ctx.lineWidth = 1;
+  for(let y=0;y<H;y+=H/4){
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+  }
+  for(let x=0;x<W;x+=W/12){
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+
+  // Draw first 3 counters
+  [0,1,2].forEach(i=>{
+    if(!sparkData[i]||sparkData[i].length<2) return;
+    const data = sparkData[i];
+    const c = COUNTERS[i];
+    const min=Math.min(...data), max=Math.max(...data);
+    const range=max-min||1;
+    ctx.strokeStyle = c.col_hex;
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = c.col_hex;
+    ctx.shadowBlur = 4;
+    ctx.beginPath();
+    data.forEach((v,j)=>{
+      const x=(j/(data.length-1))*W;
+      const y=H-((v-min)/range)*(H-20)-10;
+      j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  });
+}
+
+// ══════════════════════════════════════════
+//  BIG CANVAS
+// ══════════════════════════════════════════
+let currentPeriod = 'live';
+
+function setPeriod(p, el){
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+function updateBigCanvas(){
+  const canvas = document.getElementById('big-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 900;
+  const H = canvas.offsetHeight || 280;
+  canvas.width = W; canvas.height = H;
+
+  ctx.fillStyle = '#020c10';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(0,229,255,0.05)';
+  ctx.lineWidth = 1;
+  for(let i=0;i<=5;i++){
+    const y = (H/5)*i;
+    ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();
+    ctx.fillStyle='rgba(0,229,255,0.25)';
+    ctx.font='8px Share Tech Mono';
+    ctx.fillText(String(5-i)+'0%',4,y-3);
+  }
+  for(let i=0;i<=12;i++){
+    const x=(W/12)*i;
+    ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();
+  }
+
+  // Draw each visible curve from sparkData
+  COUNTERS.forEach((c,i)=>{
+    if(hiddenCurves.has(i)) return;
+    const data = sparkData[i];
+    if(!data||data.length<2) return;
+    const min=Math.min(...data), max=Math.max(...data);
+    const range=max-min||1;
+
+    // Gradient fill
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, c.col_hex+'22');
+    grad.addColorStop(1, c.col_hex+'00');
+
+    ctx.beginPath();
+    data.forEach((v,j)=>{
+      const x=(j/(data.length-1))*W;
+      const y=H-((v-min)/range)*(H-30)-15;
+      j===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+    });
+    ctx.strokeStyle=c.col_hex;
+    ctx.lineWidth=1.8;
+    ctx.shadowColor=c.col_hex;
+    ctx.shadowBlur=5;
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // Fill
+    ctx.lineTo(W, H);ctx.lineTo(0,H);ctx.closePath();
+    ctx.fillStyle=grad;ctx.fill();
+
+    // Last value label
+    const last = data[data.length-1];
+    const lastY = H-((last-min)/range)*(H-30)-15;
+    ctx.fillStyle=c.col_hex;
+    ctx.font='9px Share Tech Mono';
+    ctx.fillText(`${c.id}: ${last.toFixed(1)} ${c.rate_eu}`, W-200, lastY-5>10?lastY-5:10);
+
+    // Legend val
+    const lv=document.getElementById('leg-val-'+i);
+    if(lv) lv.textContent=last.toFixed(1)+' '+c.rate_eu;
+  });
+}
+
+// ══════════════════════════════════════════
+//  ARCHIVE TABLE
+// ══════════════════════════════════════════
+function updateArchiveTable(){
+  const tbody = document.getElementById('arch-tbody');
+  if(!tbody) return;
+  const rows = [...state.archiveLog].reverse().slice(0,200);
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td style="color:var(--dim)">${r.seq}</td>
+      <td class="at-ts">${r.ts}</td>
+      <td><span class="at-evt ${r.type==='AUTO'||r.type==='MANUEL'?'releve':r.type==='RAZ'?'raz':r.type==='ALARME'?'alarme':'export'}">${r.type}</span></td>
+      <td class="at-name">${r.ctr}</td>
+      <td class="at-val">${r.val}</td>
+      <td>${r.rate}</td>
+      <td style="color:var(--dim)">${r.op}</td>
+      <td style="color:var(--dim);font-size:9px">${r.note||'—'}</td>
+    </tr>
+  `).join('');
+  updateArchiveStats();
+}
+
+function updateArchiveStats(){
+  const el = document.getElementById('arch-total');
+  if(el) el.textContent = state.archiveLog.length;
+  const sz = document.getElementById('arch-size');
+  if(sz) sz.textContent = Math.round(state.archiveLog.length * 0.12);
+  const rz = document.getElementById('arch-raz');
+  if(rz) rz.textContent = state.razCount;
+  const bac = document.getElementById('arch-count');
+  if(bac) bac.textContent = state.archiveLog.length;
+}
+
+function updateValuesTable(){
+  const tbody = document.getElementById('values-tbody');
+  const label = document.getElementById('archive-count-label');
+  if(!tbody) return;
+  const data = [...state.chartData].reverse().slice(0,100);
+  if(label) label.textContent = data.length + ' enregistrements';
+  tbody.innerHTML = data.map(r=>`
+    <tr>
+      <td class="at-ts">${r.ts}</td>
+      <td>${r.rates[0]?.toFixed(1)||'—'}</td>
+      <td>${r.rates[1]?.toFixed(1)||'—'}</td>
+      <td>${r.rates[2]?.toFixed(0)||'—'}</td>
+      <td>${r.rates[3]?.toFixed(1)||'—'}</td>
+      <td>${r.tots[0]?.toFixed(2)||'—'}</td>
+      <td>${r.tots[2]?.toFixed(4)||'—'}</td>
+    </tr>
+  `).join('');
+}
+
+// ══════════════════════════════════════════
+//  RAZ
+// ══════════════════════════════════════════
+let pendingRaz = null;
+
+function showRazModal(i){
+  pendingRaz = i;
+  document.getElementById('modal-ctr-name').textContent = `${COUNTERS[i].id} — ${COUNTERS[i].name}`;
+  document.getElementById('modal-ctr-val').textContent = fmt(state.totals[i]) + ' ' + COUNTERS[i].eu;
+  document.getElementById('modal-overlay').classList.add('show');
+}
+
+function closeModal(){
+  document.getElementById('modal-overlay').classList.remove('show');
+  pendingRaz = null;
+}
+
+function confirmRaz(){
+  if(pendingRaz===null) return;
+  const i = pendingRaz;
+  performRaz(i);
+  closeModal();
+}
+
+function doRaz(i){
+  const pin = document.getElementById('raz-pin-'+i);
+  if(!pin) return;
+  if(pin.value !== '1234'){
+    showToast('PIN incorrect — RAZ refusée', 'err');
+    pin.value='';
+    return;
+  }
+  performRaz(i);
+  pin.value='';
+}
+
+function performRaz(i){
+  const c = COUNTERS[i];
+  const valBefore = state.totals[i].toFixed(3);
+  const ts = new Date().toISOString().replace('T',' ').slice(0,19);
+
+  // Archive before RAZ
+  state.archiveLog.push({
+    seq: state.archiveLog.length+1,
+    ts, type:'RAZ',
+    ctr: c.id,
+    val: valBefore,
+    rate: state.rates[i].toFixed(1),
+    op: 'OPR-01',
+    note: `Remise à zéro — valeur archivée: ${valBefore} ${c.eu}`
+  });
+
+  // Reset
+  state.totals[i] = 0;
+  state.razCount++;
+  state.archCount = state.archiveLog.length;
+
+  // Update RAZ history
+  state.razHistory.push({ctr:c.id, val:valBefore, ts, eu:c.eu});
+
+  updateRazHistory(i);
+  updateArchiveTable();
+  updateArchiveStats();
+  updateSidebarRazLog();
+
+  // Update RAZ date on card
+  const rd = document.getElementById('cc-raz-date-'+i);
+  if(rd) rd.textContent = ts.slice(11,16);
+  const rv = document.getElementById('raz-val-'+i);
+  if(rv) rv.textContent = '0.000';
+
+  document.getElementById('sb-raz-count').textContent = state.razCount;
+  saveState();
+  showToast(`RAZ effectuée : ${c.id}`, 'warn');
+}
+
+function updateRazHistory(i){
+  const c = COUNTERS[i];
+  const hist = state.razHistory.filter(r=>r.ctr===c.id).slice(-4).reverse();
+  const el = document.getElementById('raz-hist-'+i);
+  if(!el) return;
+  el.innerHTML = '<div style="font-family:\'Share Tech Mono\',monospace;font-size:8px;color:var(--dim);letter-spacing:1px;margin-bottom:4px">HISTORIQUE RAZ</div>' +
+    (hist.length ? hist.map(r=>`
+      <div class="rh-row">
+        <span class="rh-date">${r.ts.slice(5,16)}</span>
+        <span class="rh-val">${r.val} ${r.eu}</span>
+      </div>
+    `).join('') : '<div style="font-family:\'Share Tech Mono\',monospace;font-size:9px;color:var(--dim)">Aucune RAZ</div>');
+}
+
+function updateRazVals(){
+  COUNTERS.forEach((c,i)=>{
+    const rv = document.getElementById('raz-val-'+i);
+    if(rv) rv.textContent = fmt(state.totals[i]);
+  });
+}
+
+function updateSidebarRazLog(){
+  const el = document.getElementById('raz-log-sidebar');
+  if(!el) return;
+  const recent = [...state.razHistory].reverse().slice(0,4);
+  el.innerHTML = recent.map(r=>`
+    <div class="reset-item">
+      <div class="ri-time">${r.ts.slice(5,16)}</div>
+      <div class="ri-name">${r.ctr}</div>
+      <div class="ri-val">Archivé: ${r.val} ${r.eu}</div>
+    </div>
+  `).join('') || '<div style="padding:8px 12px;font-family:\'Share Tech Mono\',monospace;font-size:8px;color:var(--dim)">Aucune RAZ enregistrée</div>';
+}
+
+// ══════════════════════════════════════════
+//  ARCHIVE SINGLE
+// ══════════════════════════════════════════
+function archiveSingle(i){
+  doArchive('RELEVÉ', i);
+  showToast(`Relevé archivé : ${COUNTERS[i].id} = ${fmt(state.totals[i])} ${COUNTERS[i].eu}`, 'ok');
+}
+
+// ══════════════════════════════════════════
+//  EXPORT CSV
+// ══════════════════════════════════════════
+function exportCSV(){
+  const headers = ['#','Horodatage','Type','Compteur','Valeur','Débit','Opérateur','Note'];
+  const rows = state.archiveLog.map(r=>[r.seq,r.ts,r.type,r.ctr,r.val,r.rate,r.op,r.note||''].join(';'));
+  const csv = [headers.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `compteurs_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Export CSV téléchargé', 'ok');
+}
+
+function exportCurves(){
+  const headers = ['Horodatage', ...COUNTERS.map(c=>c.id+' ('+c.rate_eu+')'), ...COUNTERS.map(c=>c.id+' TOT ('+c.eu+')')];
+  const rows = state.chartData.map(r=>[r.ts,...r.rates.map(v=>v.toFixed(2)),...r.tots.map(v=>v.toFixed(4))].join(';'));
+  const csv = [headers.join(';'), ...rows].join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `courbes_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('Courbes CSV exportées', 'ok');
+}
+
+function clearArchive(){
+  if(!confirm('Vider tout l\'historique d\'archivage ?')) return;
+  state.archiveLog = [];
+  state.chartData = [];
+  state.archCount = 0;
+  updateArchiveTable();
+  updateValuesTable();
+  updateArchiveStats();
+  showToast('Historique vidé', 'warn');
+}
+
+// ══════════════════════════════════════════
+//  TAB SWITCHING
+// ══════════════════════════════════════════
+function switchTab(id, el){
+  document.querySelectorAll('.tabpage').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  if(el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  COUNTER SELECTION
+// ══════════════════════════════════════════
+function selectCounter(i, el){
+  document.querySelectorAll('.ctr-widget').forEach(w=>w.classList.remove('active'));
+  if(el) el.classList.add('active');
+}
+
+// ══════════════════════════════════════════
+//  TOAST
+// ══════════════════════════════════════════
+function showToast(msg, type='ok'){
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = `toast t-${type}`;
+  t.innerHTML = `<span>${type==='ok'?'✓':type==='warn'?'⚠':'✕'}</span><span>${msg}</span>`;
+  wrap.appendChild(t);
+  setTimeout(()=>t.classList.add('show'),50);
+  setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);}, 3500);
+}
+
+// ══════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════
+buildCounterCards();
+buildRazCards();
+buildLegend();
+updateSidebarRazLog();
+
+// Start with some data
+for(let j=0;j<SPARK_MAX;j++){
+  COUNTERS.forEach((c,i)=>{
+    const noise=(Math.random()-0.5)*2*c.rate_noise;
+    sparkData[i].push(Math.max(0,c.base_rate+noise));
+  });
+}
+
+// Main loop
+setInterval(()=>{
+  simulate();
+  autoArchive();
+  updateRazVals();
+}, 1000);
+
+// Initial archive
+setTimeout(()=>doArchive('AUTO'), 2000);
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', function(e){
+  if(e.target===this) closeModal();
+});
+
+window.switchTab=switchTab;
+window.setPeriod=setPeriod;
+window.archiveNow=archiveNow;
+window.archiveSingle=archiveSingle;
+window.exportCSV=exportCSV;
+window.exportCurves=exportCurves;
+window.clearArchive=clearArchive;
+window.doRaz=doRaz;
+window.showRazModal=showRazModal;
+window.confirmRaz=confirmRaz;
+window.closeModal=closeModal;
+window.selectCounter=selectCounter;
+window.toggleCurve=toggleCurve;
+</script>
+</body>
+</html>
